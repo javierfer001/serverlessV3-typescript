@@ -1,0 +1,68 @@
+service: base-project-api-http
+frameworkVersion: '3'
+configValidationMode: error
+deprecationNotificationMode: warn:summary
+
+package:
+  individually: true
+  patterns:
+
+provider:
+  name: aws
+  apiName: project-api-http-v1
+  runtime: nodejs20.x
+  architecture: arm64
+  stage: ${opt:stage, 'dev'}
+  deploymentMethod: direct
+  deploymentPrefix: api
+  
+  profile: ${self:custom.profiles.${self:provider.stage}}
+  region: ${file(./_serverless/stages/${sls:stage}.yml):stage.region}
+  
+  versionFunctions: false
+  iam:
+    role:
+      statements: ${file(./_serverless/roles.yml):roles}
+  httpApi: ${file(./_serverless/http-api.yml):httpApi}
+  vpc: ${file(./_serverless/vpc.yml):vpc.${self:provider.stage}}
+  environment:
+    ENVIRONMENT: ${self:provider.stage}
+
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+  - serverless-deployment-bucket
+  - serverless-domain-manager
+
+custom:
+  quillDomain:
+    dev: dev.projectapihttp.io
+    prod: projectapihttp.io
+  stage:
+  - dev # local
+  - prod # production
+  profiles:
+    dev: default
+    prod: prod
+  esbuild:
+    bundle: true
+    minify: true
+    keepNames: true
+    sourcemap: false
+    exclude:
+      - aws-sdk
+    target: node18
+    define:
+      'require.resolve': undefined
+    platform: node
+    concurrency: 10
+    plugins: ./_serverless/plugins.js
+    
+functions:
+  main:
+    handler: src/aws-lambda/handler/main.handler
+    name: main-${self:provider.stage}
+    events:
+    - httpApi:
+        path: /
+        method: GET

@@ -1,0 +1,11 @@
+vpc:
+    dev:
+        securityGroupIds:
+            - Ref: AWS::NoValue
+        subnetIds:
+            - Ref: AWS::NoValue
+    prod:
+        securityGroupIds:
+            - Ref: AWS::NoValue
+        subnetIds:
+            - Ref: AWS::NoValue

@@ -1,0 +1,3 @@
+stage:
+    accountId: ${aws:accountId}
+    region: us-west-1
