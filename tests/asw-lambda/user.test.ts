@@ -5,6 +5,11 @@ import {UserRepo} from "src/Aggregate/User/Infra/UserRepo";
 import {Driver} from "src/App/dataSource";
 import {DataSource} from "typeorm";
 import {UserQuery} from "src/App/User/UserQuery";
+import {UpdateUserCommand} from "src/App/User/UpdateUserCommand";
+import { PinpointClient, SendMessagesCommand } from '@aws-sdk/client-pinpoint'
+import { mockClient } from 'aws-sdk-client-mock'
+
+const smsMock = mockClient(PinpointClient as any)
 
 describe('Test CRUD API', () => {
     let admin: User,
@@ -41,7 +46,7 @@ describe('Test CRUD API', () => {
         await Driver.dataSource.destroy()
     })
 
-    it('Request Create User', async () => {
+    it('Request create user', async () => {
         expect.assertions(6)
         let event: any = {
             headers: {
@@ -71,8 +76,8 @@ describe('Test CRUD API', () => {
             "first": "John",
             "id": expect.any(String),
             "last": "Doe",
-            "phone": null,
-            "phoneCode": null,
+            "phone": "+17866265478",
+            "phoneCode": expect.any(String),
             "phoneVerify": false,
             "role": Role.manager,
             "token": expect.stringContaining('token_'),
@@ -90,8 +95,8 @@ describe('Test CRUD API', () => {
             "first": "John",
             "id": expect.any(String),
             "last": "Doe",
-            "phone": null,
-            "phoneCode": null,
+            "phone": "+17866265478",
+            "phoneCode": expect.any(String),
             "phoneVerify": false,
             "role": Role.manager,
             "token": expect.stringContaining('token_'),
@@ -141,13 +146,163 @@ describe('Test CRUD API', () => {
                 "first": "John",
                 "id": users[0].id,
                 "last": "Doe",
-                "phone": null,
-                "phoneCode": null,
+                "phone": "+17866265478",
+                "phoneCode": expect.any(String),
                 "phoneVerify": false,
                 "role": Role.manager,
                 "token": users[0].token,
             }
         ])
+    })
+
+    it('Verify user phone number', async () => {
+        expect.assertions(5)
+        smsMock.on(SendMessagesCommand as any).resolves({
+            $metadata: {
+                httpStatusCode: 200,
+                requestId: '8ee7eb84-4c9f-49a5-9f86-843708cecd0b',
+                cfId: '26TKsQI6y8Fio6seaIUdO6vIqRgD_cWZzokD3VsUiUPd9F-tkUGLXg==',
+                attempts: 1,
+                totalRetryDelay: 0,
+            },
+            MessageResponse: {
+                ApplicationId: '498bfa419b164b9fafc0afb38f7018e7',
+                RequestId: 'M6yNeEFlPHcF5dg=',
+                Result: {
+                    '+17866262322': {
+                        DeliveryStatus: 'SUCCESSFUL',
+                        StatusCode: 200,
+                        StatusMessage:
+                            'MessageId: 25hhgl74lcob7nc2s5ie6bcqgqdhn4hkrae0d6o0',
+                        MessageId: '25hhgl74lcob7nc2s5ie6bcqgqdhn4hkrae0d6o0',
+                    },
+                },
+            },
+        } as any)
+
+        let event: any = {
+            headers: {
+                'Content-Type': 'application/json',
+                'token': admin.token
+            },
+            pathParameters: {
+                source: CreateUserCommand.NAME
+            },
+            requestContext: {
+                http:{
+                    method: 'POST'
+                }
+            },
+            body: JSON.stringify({
+                first: 'John',
+                last: 'Doe',
+                phone: '+17866265478',
+                role: Role.manager
+            }),
+        }
+        let result = await mainHandler(event, <any>{
+            timeoutEarlyInMillis: 0,
+        })
+        expect(result.statusCode).toBe(200)
+        let newUser = JSON.parse(result.body)
+        expect(JSON.parse(result.body)).toEqual({
+            "first": "John",
+            "id": expect.any(String),
+            "last": "Doe",
+            "phone": "+17866265478",
+            "phoneCode": expect.any(String),
+            "phoneVerify": false,
+            "role": Role.manager,
+            "token": expect.stringContaining('token_'),
+        })
+
+        let user = await userRepo.findOneByOrFail({
+                id: newUser.id
+        })
+        expect(user).toEqual({
+            "first": "John",
+            "id": expect.any(String),
+            "last": "Doe",
+            "phone": "+17866265478",
+            "phoneCode": expect.any(String),
+            "phoneVerify": false,
+            "role": Role.manager,
+            "token": expect.stringContaining('token_'),
+        })
+
+        event = {
+            headers: {
+                'Content-Type': 'application/json',
+                'token': admin.token
+            },
+            requestContext: {
+                http:{
+                    method: 'PUT'
+                }
+            },
+            pathParameters: {
+                source: UpdateUserCommand.NAME,
+                item: user.id
+            },
+            body: JSON.stringify({
+            phoneCode: user.phoneCode
+            }),
+        }
+        result = await mainHandler(event, <any>{
+            timeoutEarlyInMillis: 0,
+        })
+        expect(result.statusCode).toBe(200)
+        expect(JSON.parse(result.body)).toEqual({
+            "first": "John",
+            "id": expect.any(String),
+            "last": "Doe",
+            "phone": "+17866265478",
+            "phoneCode": '',
+            "phoneVerify": true,
+            "role": Role.manager,
+            "token": expect.stringContaining('token_'),
+        })
+    })
+
+    it('Failed wrong phone number', async () => {
+        expect.assertions(2)
+
+        let event: any = {
+            headers: {
+                'Content-Type': 'application/json',
+                'token': admin.token
+            },
+            pathParameters: {
+                source: CreateUserCommand.NAME
+            },
+            requestContext: {
+                http:{
+                    method: 'POST'
+                }
+            },
+            body: JSON.stringify({
+                first: 'John',
+                last: 'Doe',
+                phone: '7866265478',
+                role: Role.manager
+            }),
+        }
+        let result = await mainHandler(event, <any>{
+            timeoutEarlyInMillis: 0,
+        })
+        expect(result.statusCode).toBe(500)
+        let failedUser = JSON.parse(result.body)
+        expect(failedUser).toEqual({
+            "error": [
+                {
+                    "code": "custom",
+                    "message": "Phone number has not a valid format",
+                    "path": [
+                        "phone"
+                    ]
+                }
+            ]
+        })
     })
 
     it('Request wrong event', async () => {

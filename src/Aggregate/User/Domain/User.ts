@@ -1,6 +1,7 @@
 import {BeforeInsert, Column, Entity, Index, PrimaryGeneratedColumn,} from 'typeorm'
 import {Model} from "src/Aggregate/Base/Domain/Model";
 import {Duid} from "src/Aggregate/Base/Domain/Duid";
+import {PUBLIC_APP_NAME} from "src/LambdaConfig";
 
 
 export enum Role {
@@ -74,5 +75,19 @@ export class User extends Model {
         let code = String(10000 + Math.floor(Math.random() * 90000))
         while (code.length < 5) code = '0' + code
         return code.slice(0, 5)
+    }
+
+    msgVerificationCode(): string {
+        return `[${PUBLIC_APP_NAME}]: ${this?.phoneCode} is your verification code.`
+    }
+
+    verifyPhoneCode(code: string): void {
+        this.phoneVerify = this.phoneCode == code
+        if (!this.phoneVerify) {
+            throw new Error(
+                'The verification code is incorrect',
+            )
+        }
+        this.phoneCode = ''
     }
 }

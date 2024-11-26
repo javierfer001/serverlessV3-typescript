@@ -28,7 +28,9 @@ export class CommandHandler {
         )
     }
 
-    public async handler(commandName: string, ...args: any[]): Promise<any> {
+    public async handler(): Promise<any> {
+        const commandName = <string>this.context.getParam('source')?.trim()
+
         const CommandClass = this.getHandlerClass(commandName)
         const command = new CommandClass(
             this.dataSource,
@@ -36,6 +38,15 @@ export class CommandHandler {
             this.context
         )
         this.context.isMethod(CommandClass.METHOD)
-        return command.handler(...args)
+
+        let id = this.context.getParam('item')?.trim()
+
+        if (CommandClass.METHOD == 'PUT' && !id) {
+            throw new Error(
+                'The item id is required for this method',
+            )
+        }
+
+        return command.handler(this.context.body, id)
     }
 }

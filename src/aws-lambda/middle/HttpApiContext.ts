@@ -1,11 +1,11 @@
 import 'reflect-metadata'
 import {APIGatewayProxyEventV2, Context} from 'aws-lambda'
 import z from 'zod'
-import {LambdaConfig} from "src/aws-lambda/LambdaConfig";
 import {DataSource} from "typeorm";
 import {Driver} from "src/App/dataSource";
 import {User} from "src/Aggregate/User/Domain/User";
 import {UserRepo} from "src/Aggregate/User/Infra/UserRepo";
+import {PUBLIC_ACCESS_TOKEN} from "src/LambdaConfig";
 
 export enum LambdaAuthType {
     public,
@@ -78,7 +78,7 @@ export class HttpApiContext {
                     'Public token is missing in the request header',
                 )
             }
-            if (stringToken !== LambdaConfig.publicToken) {
+            if (stringToken !== PUBLIC_ACCESS_TOKEN) {
                 throw new Error(
                     'Public token is wrong, please contact the administrator',
                 )
