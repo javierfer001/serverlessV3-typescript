@@ -64,8 +64,16 @@ export class HttpApiResponse {
     }
 
     public static error(err: any): APIGatewayProxyResult {
+        if (err.name == 'ZodError')
+            return new HttpApiResponse(
+                {
+                    error: JSON.parse(err.message),
+                },
+                StatusCodes.UNPROCESSABLE_ENTITY
+            ).toResult()
+
         return new HttpApiResponse(
-            { error: err.message },
+            { error: err },
             StatusCodes.INTERNAL_SERVER_ERROR
         ).toResult()
     }

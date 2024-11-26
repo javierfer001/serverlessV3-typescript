@@ -67,5 +67,8 @@ functions:
         path: /{source}
         method: POST
     - httpApi:
+        path: /{source}/{item}
+        method: PUT
+    - httpApi:
         path: /{source}
         method: GET

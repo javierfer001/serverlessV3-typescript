@@ -10,10 +10,6 @@ export class Model {
         return str.replace(/\b(\w)/g, (s) => s.toUpperCase())
     }
 
-    public capitalize(str?: string | undefined): string | undefined {
-        return Model.capitalize(str)
-    }
-
     static alphabeticChar(str?: string | undefined) {
         if (!str) return undefined
         str = this.removeSpecialCharNumber(str)

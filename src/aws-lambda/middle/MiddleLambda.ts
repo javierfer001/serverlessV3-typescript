@@ -47,7 +47,12 @@ export class MiddleLambda {
                 logger.error(`Error Lambda: ${this.lambdaName}`, {
                     error: error.message,
                 })
-                return HttpApiResponse.error(error)
+
+                if (error.name == 'ZodError') {
+                    return HttpApiResponse.error(JSON.parse(error.message))
+                }
+
+                return HttpApiResponse.error(error.message)
             } finally {
                 await httpApiContext?.close()
             }
