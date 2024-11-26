@@ -3,3 +3,6 @@ Install
 
 Run locally
     - npm start
+
+Run Unit Test
+    - npm test

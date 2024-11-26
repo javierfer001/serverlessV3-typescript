@@ -1,15 +1,11 @@
-const main = async (event, context) => {
+import {Lambda} from "src/aws-lambda/middle/MiddleLambda";
+import {HttpApiContext, LambdaAuthType} from "src/aws-lambda/middle/HttpApiContext";
+import {logger} from "src/lib/logger";
+import {HttpApiResponse} from "src/aws-lambda/middle/HttpApiResponse";
+import {Hello} from "src/App/hello";
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify(
-            {
-                message: 'Go Serverless v1.0! Your function executed successfully!',
-                input: event,
-            },
-            null,
-            2
-        ),
-    };
+const main = async (context: HttpApiContext) => {
+    logger.log('Hello World!')
+    return HttpApiResponse.result(Hello.sayHello())
 }
-export const handler = main
+export const handler = Lambda.httpApi(main, LambdaAuthType.public)
