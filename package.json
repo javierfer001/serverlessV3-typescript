@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "serverless offline --stage dev --reloadHandler",
+    "migration:create": "ts-node ./node_modules/typeorm/cli.js migration:create",
     "test": "ENVIRONMENT=test jest --ci --coverage"
   },
   "engines": {

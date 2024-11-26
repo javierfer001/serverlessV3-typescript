@@ -35,6 +35,7 @@ export class CommandHandler {
             this.loginUser,
             this.context
         )
+        this.context.isMethod(CommandClass.METHOD)
         return command.handler(...args)
     }
 }

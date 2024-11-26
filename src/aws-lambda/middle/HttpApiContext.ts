@@ -120,6 +120,13 @@ export class HttpApiContext {
         return this.loginUser
     }
 
+    public isMethod(method: string): void {
+        if(method !== this.event?.requestContext?.http?.method) {
+            throw new Error(
+                'You are not allowed to access this method. Method Allow: ' + method,
+            )
+        }
+    }
 
     async close(): Promise<void> {
         await Driver.destroy()

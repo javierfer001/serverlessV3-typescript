@@ -4,6 +4,7 @@ import {Role, User} from "src/Aggregate/User/Domain/User";
 import {UserRepo} from "src/Aggregate/User/Infra/UserRepo";
 import {Driver} from "src/App/dataSource";
 import {DataSource} from "typeorm";
+import {UserQuery} from "src/App/User/UserQuery";
 
 describe('Test CRUD API', () => {
     let admin: User,
@@ -16,6 +17,7 @@ describe('Test CRUD API', () => {
 
          dataSource = await Driver.connection()
         userRepo = new UserRepo(dataSource)
+        await userRepo.delete({})
 
         admin = new User()
         admin.role = Role.admin
@@ -40,7 +42,7 @@ describe('Test CRUD API', () => {
     })
 
     it('Request Create User', async () => {
-        expect.assertions(4)
+        expect.assertions(6)
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
@@ -48,6 +50,11 @@ describe('Test CRUD API', () => {
             },
             pathParameters: {
                 source: CreateUserCommand.NAME
+            },
+            requestContext: {
+                http:{
+                    method: 'POST'
+                }
             },
             body: JSON.stringify({
                 first: 'John',
@@ -89,6 +96,58 @@ describe('Test CRUD API', () => {
             "role": Role.manager,
             "token": expect.stringContaining('token_'),
         })
+
+        event = {
+            headers: {
+                'Content-Type': 'application/json',
+                'token': admin.token
+            },
+            requestContext: {
+                http:{
+                    method: 'GET'
+                }
+            },
+            pathParameters: {
+                source: UserQuery.NAME
+            },
+            body: JSON.stringify({}),
+        }
+        result = await mainHandler(event, <any>{
+            timeoutEarlyInMillis: 0,
+        })
+        expect(result.statusCode).toBe(200)
+        expect(JSON.parse(result.body)).toEqual([
+            {
+                "first": "Brian",
+                "id": manager.id,
+                "last": "Tulio",
+                "phone": "+12345678901",
+                "phoneCode": null,
+                "phoneVerify": true,
+                "role": Role.manager,
+                "token": manager.token
+            },
+            {
+                "first": "Javier",
+                "id": admin.id,
+                "last": "Fdz",
+                "phone": "+1234567890",
+                "phoneCode": null,
+                "phoneVerify": true,
+                "role": Role.admin,
+                "token": admin.token
+            },
+            {
+                "first": "John",
+                "id": users[0].id,
+                "last": "Doe",
+                "phone": null,
+                "phoneCode": null,
+                "phoneVerify": false,
+                "role": Role.manager,
+                "token": users[0].token,
+            }
+        ])
     })
 
     it('Request wrong event', async () => {
@@ -100,6 +159,11 @@ describe('Test CRUD API', () => {
             },
             pathParameters: {
                 source: `${CreateUserCommand.NAME}_wrong`
+            },
+            requestContext: {
+                http:{
+                    method: 'POST'
+                }
             },
             body: JSON.stringify({
                 first: 'John',
@@ -126,6 +190,11 @@ describe('Test CRUD API', () => {
             },
             pathParameters: {
                 source: CreateUserCommand.NAME
+            },
+            requestContext: {
+                http:{
+                    method: 'POST'
+                }
             },
             body: JSON.stringify({
                 first: 'John',

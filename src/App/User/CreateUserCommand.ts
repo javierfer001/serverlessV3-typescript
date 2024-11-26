@@ -19,6 +19,7 @@ export const CreateUserSchema = z.object({
 
 export class CreateUserCommand extends AbstractCommand {
     static readonly NAME = 'create-user'
+    static readonly METHOD = 'POST'
 
     private readonly userRepo: UserRepo
 

@@ -66,3 +66,6 @@ functions:
     - httpApi:
         path: /{source}
         method: POST
+    - httpApi:
+        path: /{source}
+        method: GET
