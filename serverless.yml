@@ -64,5 +64,8 @@ functions:
     name: main-${self:provider.stage}
     events:
     - httpApi:
-        path: /
+        path: /{source}
+        method: POST
+    - httpApi:
+        path: /{source}
         method: GET

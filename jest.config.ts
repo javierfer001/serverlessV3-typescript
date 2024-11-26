@@ -7,8 +7,9 @@ const jestConfig: JestConfigWithTsJest = {
   setupFiles: ["<rootDir>/.jest/env.js"],
   collectCoverageFrom: [
     "src/**/*.{ts,js}",
-    "!src/services/**/.esbuild/**/*.{ts,js}",
-    "!src/services/**/.serverless/**/*.{ts,js}",
+    "!**/.esbuild/**/*.{ts,js}",
+    "!**/.serverless/**/*.{ts,js}",
+    "!src/**/migrations/**/*.{ts,js}",
   ],
   moduleNameMapper: {
     "^src/(.*)$": "<rootDir>/src/$1",
