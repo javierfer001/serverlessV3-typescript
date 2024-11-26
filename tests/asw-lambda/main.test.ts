@@ -1,100 +1,154 @@
 import {handler as mainHandler} from "src/aws-lambda/handler/main";
-import {logger} from "src/lib/logger";
-import {Hello} from "src/App/hello";
+import {CreateUserCommand} from "src/App/User/CreateUserCommand";
+import {Role, User} from "src/Aggregate/User/Domain/User";
+import {UserRepo} from "src/Aggregate/User/Infra/UserRepo";
+import {Driver} from "src/App/dataSource";
+import {DataSource} from "typeorm";
 
-describe('Test base API', () => {
+describe('Test CRUD API', () => {
+    let admin: User,
+        manager: User,
+        dataSource: DataSource,
+        userRepo: UserRepo
 
     beforeEach(async () => {
+        jest.spyOn(Driver, 'destroy').mockReturnValue(Promise.resolve())
+
+         dataSource = await Driver.connection()
+        userRepo = new UserRepo(dataSource)
+
+        admin = new User()
+        admin.role = Role.admin
+        admin.first = 'Javier'
+        admin.last = 'Fdz'
+        admin.phone = '+1234567890'
+        admin.phoneVerify = true
+        await userRepo.save(admin)
+
+        manager = new User()
+        manager.role = Role.manager
+        manager.first = 'Brian'
+        manager.last = 'Tulio'
+        manager.phone = '+12345678901'
+        manager.phoneVerify = true
+        await userRepo.save(manager)
     })
 
     afterEach(async () => {
         jest.restoreAllMocks()
+        await Driver.dataSource.destroy()
     })
 
-    it('Request Hello World', async () => {
+    it('Request Create User', async () => {
         expect.assertions(4)
-        const jestMockLog = jest.spyOn(logger, 'log').mockImplementation(() => {})
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'public-token': process.env.PUBLIC_ACCESS_TOKEN
+                'token': admin.token
             },
-            pathParameters: {},
-            body: JSON.stringify({}),
+            pathParameters: {
+                source: CreateUserCommand.NAME
+            },
+            body: JSON.stringify({
+                first: 'John',
+                last: 'Doe',
+                phone: '+17866265478',
+                role: Role.manager
+            }),
         }
         let result = await mainHandler(event, <any>{
             timeoutEarlyInMillis: 0,
         })
         expect(result.statusCode).toBe(200)
-        expect(result.body).toBe(JSON.stringify({message: 'Hello World!'}))
-
-        expect(jestMockLog).toBeCalled()
-        expect(jestMockLog).toBeCalledWith('Hello World!')
-    })
-
-    it('Missing Public Token', async () => {
-        const jestMockLog = jest.spyOn(logger, 'error').mockImplementation(() => {})
-
-        let event: any = {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            pathParameters: {},
-            body: JSON.stringify({}),
-        }
-        let result = await mainHandler(event, <any>{
-            timeoutEarlyInMillis: 0,
-        })
-        expect(result.statusCode).toBe(500)
-        expect(result.body).toBe(JSON.stringify({error: 'Public token is missing in the request header'}))
-
-        expect(jestMockLog).toBeCalled()
-        expect(jestMockLog.mock.calls).toEqual([
-            [
-                "Error Lambda: main",
-                {
-                    "error": "Public token is missing in the request header"
-                }
-            ]
-        ])
-    })
-
-    it('Handler exception from Application', async () => {
-        // Mock the Hello.sayHello function to throw an error
-        jest.spyOn(Hello, 'sayHello').mockImplementation(() => {
-            return (() => {error: 'Error from Application'}) as any
+        expect(JSON.parse(result.body)).toEqual({
+            "first": "John",
+            "id": expect.any(String),
+            "last": "Doe",
+            "phone": null,
+            "phoneCode": null,
+            "phoneVerify": false,
+            "role": Role.manager,
+            "token": expect.stringContaining('token_'),
         })
 
-        let event: any = {
-            headers: {
-                'Content-Type': 'application/json',
-                'public-token': process.env.PUBLIC_ACCESS_TOKEN
-            },
-            pathParameters: {},
-            body: JSON.stringify({}),
-        }
-        let result = await mainHandler(event, <any>{
-            timeoutEarlyInMillis: 0,
+        let users = await userRepo.find({
+            where: {
+                first: 'John',
+                last: 'Doe'
+            }
         })
-        expect(result.statusCode).toBe(500)
-        expect(result.body).toBe(JSON.stringify({"error":"invalid response body type, found function"}))
+
+        expect(users).toHaveLength(1)
+        expect(users[0]).toEqual({
+            "first": "John",
+            "id": expect.any(String),
+            "last": "Doe",
+            "phone": null,
+            "phoneCode": null,
+            "phoneVerify": false,
+            "role": Role.manager,
+            "token": expect.stringContaining('token_'),
+        })
     })
 
-    it('Failed using wrong public token', async () => {
+    it('Request wrong event', async () => {
         expect.assertions(2)
-
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'public-token': `${process.env.PUBLIC_ACCESS_TOKEN}_error`
+                'token': admin.token
             },
-            pathParameters: {},
-            body: JSON.stringify({}),
+            pathParameters: {
+                source: `${CreateUserCommand.NAME}_wrong`
+            },
+            body: JSON.stringify({
+                first: 'John',
+                last: 'Doe',
+                phone: '+17866265478',
+                role: Role.manager
+            }),
         }
         let result = await mainHandler(event, <any>{
             timeoutEarlyInMillis: 0,
         })
         expect(result.statusCode).toBe(500)
-        expect(result.body).toBe(JSON.stringify({"error":"Public token is wrong, please contact the administrator"}))
+        expect(JSON.parse(result.body)).toEqual({
+            "error": "missing QueryEvent for event: create-user_wrong"
+        })
+    })
+
+    it('Failed if user is not an admin', async () => {
+        expect.assertions(3)
+        let event: any = {
+            headers: {
+                'Content-Type': 'application/json',
+                'token': manager.token
+            },
+            pathParameters: {
+                source: CreateUserCommand.NAME
+            },
+            body: JSON.stringify({
+                first: 'John',
+                last: 'Doe',
+                phone: '+17866265478',
+                role: Role.manager
+            }),
+        }
+        let result = await mainHandler(event, <any>{
+            timeoutEarlyInMillis: 0,
+        })
+        expect(result.statusCode).toBe(500)
+        expect(JSON.parse(result.body)).toEqual({
+            "error": "Unauthorized access, your role is not allowed, Role: manager"
+        })
+
+        let users = await userRepo.find({
+            where: {
+                first: 'John',
+                last: 'Doe'
+            }
+        })
+
+        expect(users).toHaveLength(0)
     })
 })

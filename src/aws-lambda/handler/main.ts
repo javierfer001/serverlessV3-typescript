@@ -1,11 +1,20 @@
 import {Lambda} from "src/aws-lambda/middle/MiddleLambda";
 import {HttpApiContext, LambdaAuthType} from "src/aws-lambda/middle/HttpApiContext";
-import {logger} from "src/lib/logger";
 import {HttpApiResponse} from "src/aws-lambda/middle/HttpApiResponse";
-import {Hello} from "src/App/hello";
+import {CommandHandler} from "src/App/Base/CommandHandler";
+import {httpCommands} from "src/App/Commands";
 
 const main = async (context: HttpApiContext) => {
-    logger.log('Hello World!')
-    return HttpApiResponse.result(Hello.sayHello())
+    const source = <string>context.getParam('source')?.trim()
+    let item = context.getParam('item')?.trim()
+
+    let handle = new CommandHandler(
+        context.dataSource,
+        httpCommands,
+        context.getUser(),
+        context
+    )
+
+    return HttpApiResponse.result(await handle.handler(<string>source, context.body, item))
 }
-export const handler = Lambda.httpApi(main, LambdaAuthType.public)
+export const handler = Lambda.httpApi(main, LambdaAuthType.token)

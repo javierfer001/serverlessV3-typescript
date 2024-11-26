@@ -1,7 +1,11 @@
 import 'reflect-metadata'
-import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
+import {APIGatewayProxyEventV2, Context} from 'aws-lambda'
 import z from 'zod'
 import {LambdaConfig} from "src/aws-lambda/LambdaConfig";
+import {DataSource} from "typeorm";
+import {Driver} from "src/App/dataSource";
+import {User} from "src/Aggregate/User/Domain/User";
+import {UserRepo} from "src/Aggregate/User/Infra/UserRepo";
 
 export enum LambdaAuthType {
     public,
@@ -18,6 +22,10 @@ export class HttpApiContext {
     public readonly body: any | null
     public readonly filter: { [key: string]: any } = {}
     public readonly routeKey: string
+
+    private loginUser: User | null
+    dataSource: DataSource
+    private userRepo: UserRepo
 
     constructor(
         public readonly event: APIGatewayProxyEventV2,
@@ -61,6 +69,8 @@ export class HttpApiContext {
     }
 
     async create(): Promise<HttpApiContext> {
+        this.dataSource = await Driver.connection()
+
         if (this.authz == LambdaAuthType.public) {
             const stringToken = this.headers.get('public-token')
             if (!stringToken) {
@@ -83,6 +93,19 @@ export class HttpApiContext {
                 )
             }
             ValidateUserToken.parse(token)
+
+            this.userRepo = new UserRepo(this.dataSource)
+            this.loginUser = await this.userRepo.findOne({
+                where: {
+                    token,
+                },
+            })
+
+            if (!this.loginUser) {
+                throw new Error(
+                    'The admin session has expired. Please login again to continue',
+                )
+            }
         } else {
             throw new Error(
                 'Invalid auth type',
@@ -91,7 +114,14 @@ export class HttpApiContext {
         return this
     }
 
+    getUser(): User {
+        if (!this.loginUser)
+            throw new Error('User no found')
+        return this.loginUser
+    }
+
+
     async close(): Promise<void> {
-        // Close the connection or do any cleanup
+        await Driver.destroy()
     }
 }
