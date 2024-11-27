@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-pinpoint": "^3.699.0",
+    "@aws-sdk/client-secrets-manager": "^3.699.0",
     "reflect-metadata": "0.2.2",
     "sqlite3": "^5.1.7",
     "typeorm": "0.3.20",
