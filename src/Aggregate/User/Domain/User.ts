@@ -1,8 +1,13 @@
-import {BeforeInsert, Column, Entity, Index, PrimaryGeneratedColumn,} from 'typeorm'
-import {Model} from "src/Aggregate/Base/Domain/Model";
-import {Duid} from "src/Aggregate/Base/Domain/Duid";
-import {PUBLIC_APP_NAME} from "src/LambdaConfig";
-
+import {
+    BeforeInsert,
+    Column,
+    Entity,
+    Index,
+    PrimaryGeneratedColumn,
+} from 'typeorm'
+import { Model } from 'src/Aggregate/Base/Domain/Model'
+import { Duid } from 'src/Aggregate/Base/Domain/Duid'
+import { PUBLIC_APP_NAME } from 'src/LambdaConfig'
 
 export enum Role {
     admin = 'admin',
@@ -14,7 +19,6 @@ export enum Role {
     name: 'user',
 })
 export class User extends Model {
-
     @PrimaryGeneratedColumn('uuid', {
         primaryKeyConstraintName: 'PK_USER',
     })
@@ -84,9 +88,7 @@ export class User extends Model {
     verifyPhoneCode(code: string): void {
         this.phoneVerify = this.phoneCode == code
         if (!this.phoneVerify) {
-            throw new Error(
-                'The verification code is incorrect',
-            )
+            throw new Error('The verification code is incorrect')
         }
         this.phoneCode = ''
     }

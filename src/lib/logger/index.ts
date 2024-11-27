@@ -1,4 +1,3 @@
-
 const logFn = (tag: string, msg: string, ...args: any[]) => {
     if (process.env?.TEST_ENV === 'test') {
         return
@@ -13,6 +12,4 @@ export const logger = {
     error: (msg: string, ...args: any[]) => {
         logFn('ERR', msg, args)
     },
-
-
 }

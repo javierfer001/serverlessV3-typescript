@@ -1,9 +1,11 @@
-import {DataSource} from 'typeorm'
-import {User} from 'src/Aggregate/User/Domain/User'
-import {PhoneNumber} from "src/Aggregate/Base/Domain/PhoneNumber";
-import {RepoBase, withTimeout} from "src/Aggregate/Base/Infrastructure/RepoBase";
-import {awsMsg} from "src/lib/aws/AwsMsg";
-
+import { DataSource } from 'typeorm'
+import { User } from 'src/Aggregate/User/Domain/User'
+import { PhoneNumber } from 'src/Aggregate/Base/Domain/PhoneNumber'
+import {
+    RepoBase,
+    withTimeout,
+} from 'src/Aggregate/Base/Infrastructure/RepoBase'
+import { awsMsg } from 'src/lib/aws/AwsMsg'
 
 export class UserRepo extends RepoBase<User> {
     constructor(readonly dataSource: DataSource) {
@@ -17,7 +19,10 @@ export class UserRepo extends RepoBase<User> {
             user.phoneVerify = false
 
             // Send SMS Notification
-            await withTimeout<any>(1000, awsMsg.sendSms(user.phone, user.msgVerificationCode()))
+            await withTimeout<any>(
+                1000,
+                awsMsg.sendSms(user.phone, user.msgVerificationCode())
+            )
         }
     }
 
@@ -27,7 +32,10 @@ export class UserRepo extends RepoBase<User> {
 
             await this.save(user)
             // Send SMS Notification
-            await withTimeout<any>(1000, awsMsg.sendSms(user.phone, user.msgVerificationCode()))
+            await withTimeout<any>(
+                1000,
+                awsMsg.sendSms(user.phone, user.msgVerificationCode())
+            )
         }
     }
 }

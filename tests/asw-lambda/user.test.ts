@@ -1,26 +1,23 @@
-import {handler as mainHandler} from "src/aws-lambda/handler/main";
-import {CreateUserCommand} from "src/App/User/CreateUserCommand";
-import {Role, User} from "src/Aggregate/User/Domain/User";
-import {UserRepo} from "src/Aggregate/User/Infra/UserRepo";
-import {Driver} from "src/App/dataSource";
-import {DataSource} from "typeorm";
-import {UserQuery} from "src/App/User/UserQuery";
-import {UpdateUserCommand} from "src/App/User/UpdateUserCommand";
+import { handler as mainHandler } from 'src/aws-lambda/handler/main'
+import { CreateUserCommand } from 'src/App/User/CreateUserCommand'
+import { Role, User } from 'src/Aggregate/User/Domain/User'
+import { UserRepo } from 'src/Aggregate/User/Infra/UserRepo'
+import { Driver } from 'src/App/dataSource'
+import { DataSource } from 'typeorm'
+import { UserQuery } from 'src/App/User/UserQuery'
+import { UpdateUserCommand } from 'src/App/User/UpdateUserCommand'
 import { PinpointClient, SendMessagesCommand } from '@aws-sdk/client-pinpoint'
 import { mockClient } from 'aws-sdk-client-mock'
 
 const smsMock = mockClient(PinpointClient as any)
 
 describe('Test CRUD API', () => {
-    let admin: User,
-        manager: User,
-        dataSource: DataSource,
-        userRepo: UserRepo
+    let admin: User, manager: User, dataSource: DataSource, userRepo: UserRepo
 
     beforeEach(async () => {
         jest.spyOn(Driver, 'destroy').mockReturnValue(Promise.resolve())
 
-         dataSource = await Driver.connection()
+        dataSource = await Driver.connection()
         userRepo = new UserRepo(dataSource)
         await userRepo.delete({})
 
@@ -51,21 +48,21 @@ describe('Test CRUD API', () => {
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'token': admin.token
+                token: admin.token,
             },
             pathParameters: {
-                source: CreateUserCommand.NAME
+                source: CreateUserCommand.NAME,
             },
             requestContext: {
-                http:{
-                    method: 'POST'
-                }
+                http: {
+                    method: 'POST',
+                },
             },
             body: JSON.stringify({
                 first: 'John',
                 last: 'Doe',
                 phone: '+17866265478',
-                role: Role.manager
+                role: Role.manager,
             }),
         }
         let result = await mainHandler(event, <any>{
@@ -73,47 +70,47 @@ describe('Test CRUD API', () => {
         })
         expect(result.statusCode).toBe(200)
         expect(JSON.parse(result.body)).toEqual({
-            "first": "John",
-            "id": expect.any(String),
-            "last": "Doe",
-            "phone": "+17866265478",
-            "phoneCode": expect.any(String),
-            "phoneVerify": false,
-            "role": Role.manager,
-            "token": expect.stringContaining('token_'),
+            first: 'John',
+            id: expect.any(String),
+            last: 'Doe',
+            phone: '+17866265478',
+            phoneCode: expect.any(String),
+            phoneVerify: false,
+            role: Role.manager,
+            token: expect.stringContaining('token_'),
         })
 
         let users = await userRepo.find({
             where: {
                 first: 'John',
-                last: 'Doe'
-            }
+                last: 'Doe',
+            },
         })
 
         expect(users).toHaveLength(1)
         expect(users[0]).toEqual({
-            "first": "John",
-            "id": expect.any(String),
-            "last": "Doe",
-            "phone": "+17866265478",
-            "phoneCode": expect.any(String),
-            "phoneVerify": false,
-            "role": Role.manager,
-            "token": expect.stringContaining('token_'),
+            first: 'John',
+            id: expect.any(String),
+            last: 'Doe',
+            phone: '+17866265478',
+            phoneCode: expect.any(String),
+            phoneVerify: false,
+            role: Role.manager,
+            token: expect.stringContaining('token_'),
         })
 
         event = {
             headers: {
                 'Content-Type': 'application/json',
-                'token': admin.token
+                token: admin.token,
             },
             requestContext: {
-                http:{
-                    method: 'GET'
-                }
+                http: {
+                    method: 'GET',
+                },
             },
             pathParameters: {
-                source: UserQuery.NAME
+                source: UserQuery.NAME,
             },
             body: JSON.stringify({}),
         }
@@ -123,35 +120,35 @@ describe('Test CRUD API', () => {
         expect(result.statusCode).toBe(200)
         expect(JSON.parse(result.body)).toEqual([
             {
-                "first": "Brian",
-                "id": manager.id,
-                "last": "Tulio",
-                "phone": "+12345678901",
-                "phoneCode": null,
-                "phoneVerify": true,
-                "role": Role.manager,
-                "token": manager.token
+                first: 'Brian',
+                id: manager.id,
+                last: 'Tulio',
+                phone: '+12345678901',
+                phoneCode: null,
+                phoneVerify: true,
+                role: Role.manager,
+                token: manager.token,
             },
             {
-                "first": "Javier",
-                "id": admin.id,
-                "last": "Fdz",
-                "phone": "+1234567890",
-                "phoneCode": null,
-                "phoneVerify": true,
-                "role": Role.admin,
-                "token": admin.token
+                first: 'Javier',
+                id: admin.id,
+                last: 'Fdz',
+                phone: '+1234567890',
+                phoneCode: null,
+                phoneVerify: true,
+                role: Role.admin,
+                token: admin.token,
             },
             {
-                "first": "John",
-                "id": users[0].id,
-                "last": "Doe",
-                "phone": "+17866265478",
-                "phoneCode": expect.any(String),
-                "phoneVerify": false,
-                "role": Role.manager,
-                "token": users[0].token,
-            }
+                first: 'John',
+                id: users[0].id,
+                last: 'Doe',
+                phone: '+17866265478',
+                phoneCode: expect.any(String),
+                phoneVerify: false,
+                role: Role.manager,
+                token: users[0].token,
+            },
         ])
     })
 
@@ -183,21 +180,21 @@ describe('Test CRUD API', () => {
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'token': admin.token
+                token: admin.token,
             },
             pathParameters: {
-                source: CreateUserCommand.NAME
+                source: CreateUserCommand.NAME,
             },
             requestContext: {
-                http:{
-                    method: 'POST'
-                }
+                http: {
+                    method: 'POST',
+                },
             },
             body: JSON.stringify({
                 first: 'John',
                 last: 'Doe',
                 phone: '+17866265478',
-                role: Role.manager
+                role: Role.manager,
             }),
         }
         let result = await mainHandler(event, <any>{
@@ -206,46 +203,46 @@ describe('Test CRUD API', () => {
         expect(result.statusCode).toBe(200)
         let newUser = JSON.parse(result.body)
         expect(JSON.parse(result.body)).toEqual({
-            "first": "John",
-            "id": expect.any(String),
-            "last": "Doe",
-            "phone": "+17866265478",
-            "phoneCode": expect.any(String),
-            "phoneVerify": false,
-            "role": Role.manager,
-            "token": expect.stringContaining('token_'),
+            first: 'John',
+            id: expect.any(String),
+            last: 'Doe',
+            phone: '+17866265478',
+            phoneCode: expect.any(String),
+            phoneVerify: false,
+            role: Role.manager,
+            token: expect.stringContaining('token_'),
         })
 
         let user = await userRepo.findOneByOrFail({
-                id: newUser.id
+            id: newUser.id,
         })
         expect(user).toEqual({
-            "first": "John",
-            "id": expect.any(String),
-            "last": "Doe",
-            "phone": "+17866265478",
-            "phoneCode": expect.any(String),
-            "phoneVerify": false,
-            "role": Role.manager,
-            "token": expect.stringContaining('token_'),
+            first: 'John',
+            id: expect.any(String),
+            last: 'Doe',
+            phone: '+17866265478',
+            phoneCode: expect.any(String),
+            phoneVerify: false,
+            role: Role.manager,
+            token: expect.stringContaining('token_'),
         })
 
         event = {
             headers: {
                 'Content-Type': 'application/json',
-                'token': admin.token
+                token: admin.token,
             },
             requestContext: {
-                http:{
-                    method: 'PUT'
-                }
+                http: {
+                    method: 'PUT',
+                },
             },
             pathParameters: {
                 source: UpdateUserCommand.NAME,
-                item: user.id
+                item: user.id,
             },
             body: JSON.stringify({
-            phoneCode: user.phoneCode
+                phoneCode: user.phoneCode,
             }),
         }
         result = await mainHandler(event, <any>{
@@ -253,14 +250,14 @@ describe('Test CRUD API', () => {
         })
         expect(result.statusCode).toBe(200)
         expect(JSON.parse(result.body)).toEqual({
-            "first": "John",
-            "id": expect.any(String),
-            "last": "Doe",
-            "phone": "+17866265478",
-            "phoneCode": '',
-            "phoneVerify": true,
-            "role": Role.manager,
-            "token": expect.stringContaining('token_'),
+            first: 'John',
+            id: expect.any(String),
+            last: 'Doe',
+            phone: '+17866265478',
+            phoneCode: '',
+            phoneVerify: true,
+            role: Role.manager,
+            token: expect.stringContaining('token_'),
         })
     })
 
@@ -270,21 +267,21 @@ describe('Test CRUD API', () => {
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'token': admin.token
+                token: admin.token,
             },
             pathParameters: {
-                source: CreateUserCommand.NAME
+                source: CreateUserCommand.NAME,
             },
             requestContext: {
-                http:{
-                    method: 'POST'
-                }
+                http: {
+                    method: 'POST',
+                },
             },
             body: JSON.stringify({
                 first: 'John',
                 last: 'Doe',
                 phone: '7866265478',
-                role: Role.manager
+                role: Role.manager,
             }),
         }
         let result = await mainHandler(event, <any>{
@@ -293,15 +290,13 @@ describe('Test CRUD API', () => {
         expect(result.statusCode).toBe(500)
         let failedUser = JSON.parse(result.body)
         expect(failedUser).toEqual({
-            "error": [
+            error: [
                 {
-                    "code": "custom",
-                    "message": "Phone number has not a valid format",
-                    "path": [
-                        "phone"
-                    ]
-                }
-            ]
+                    code: 'custom',
+                    message: 'Phone number has not a valid format',
+                    path: ['phone'],
+                },
+            ],
         })
     })
 
@@ -310,21 +305,21 @@ describe('Test CRUD API', () => {
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'token': admin.token
+                token: admin.token,
             },
             pathParameters: {
-                source: `${CreateUserCommand.NAME}_wrong`
+                source: `${CreateUserCommand.NAME}_wrong`,
             },
             requestContext: {
-                http:{
-                    method: 'POST'
-                }
+                http: {
+                    method: 'POST',
+                },
             },
             body: JSON.stringify({
                 first: 'John',
                 last: 'Doe',
                 phone: '+17866265478',
-                role: Role.manager
+                role: Role.manager,
             }),
         }
         let result = await mainHandler(event, <any>{
@@ -332,7 +327,7 @@ describe('Test CRUD API', () => {
         })
         expect(result.statusCode).toBe(500)
         expect(JSON.parse(result.body)).toEqual({
-            "error": "missing QueryEvent for event: create-user_wrong"
+            error: 'missing QueryEvent for event: create-user_wrong',
         })
     })
 
@@ -341,21 +336,21 @@ describe('Test CRUD API', () => {
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'token': manager.token
+                token: manager.token,
             },
             pathParameters: {
-                source: CreateUserCommand.NAME
+                source: CreateUserCommand.NAME,
             },
             requestContext: {
-                http:{
-                    method: 'POST'
-                }
+                http: {
+                    method: 'POST',
+                },
             },
             body: JSON.stringify({
                 first: 'John',
                 last: 'Doe',
                 phone: '+17866265478',
-                role: Role.manager
+                role: Role.manager,
             }),
         }
         let result = await mainHandler(event, <any>{
@@ -363,14 +358,14 @@ describe('Test CRUD API', () => {
         })
         expect(result.statusCode).toBe(500)
         expect(JSON.parse(result.body)).toEqual({
-            "error": "Unauthorized access, your role is not allowed, Role: manager"
+            error: 'Unauthorized access, your role is not allowed, Role: manager',
         })
 
         let users = await userRepo.find({
             where: {
                 first: 'John',
-                last: 'Doe'
-            }
+                last: 'Doe',
+            },
         })
 
         expect(users).toHaveLength(0)

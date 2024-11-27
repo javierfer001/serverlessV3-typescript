@@ -1,11 +1,9 @@
-import {handler as publicHandler} from "src/aws-lambda/handler/public";
-import {logger} from "src/lib/logger";
-import {AppVersion} from "src/App/appVersion";
+import { handler as publicHandler } from 'src/aws-lambda/handler/public'
+import { logger } from 'src/lib/logger'
+import { AppVersion } from 'src/App/appVersion'
 
 describe('Test Public base API', () => {
-
-    beforeEach(async () => {
-    })
+    beforeEach(async () => {})
 
     afterEach(async () => {
         jest.restoreAllMocks()
@@ -13,11 +11,13 @@ describe('Test Public base API', () => {
 
     it('Request App Version', async () => {
         expect.assertions(4)
-        const jestMockLog = jest.spyOn(logger, 'log').mockImplementation(() => {})
+        const jestMockLog = jest
+            .spyOn(logger, 'log')
+            .mockImplementation(() => {})
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'public-token': process.env.PUBLIC_ACCESS_TOKEN
+                'public-token': process.env.PUBLIC_ACCESS_TOKEN,
             },
             pathParameters: {},
             body: JSON.stringify({}),
@@ -26,14 +26,16 @@ describe('Test Public base API', () => {
             timeoutEarlyInMillis: 0,
         })
         expect(result.statusCode).toBe(200)
-        expect(result.body).toBe(JSON.stringify({"version":"0.0.1"}))
+        expect(result.body).toBe(JSON.stringify({ version: '0.0.1' }))
 
         expect(jestMockLog).toBeCalled()
         expect(jestMockLog).toBeCalledWith('Driver.connection')
     })
 
     it('Missing Public Token', async () => {
-        const jestMockLog = jest.spyOn(logger, 'error').mockImplementation(() => {})
+        const jestMockLog = jest
+            .spyOn(logger, 'error')
+            .mockImplementation(() => {})
 
         let event: any = {
             headers: {
@@ -46,16 +48,20 @@ describe('Test Public base API', () => {
             timeoutEarlyInMillis: 0,
         })
         expect(result.statusCode).toBe(500)
-        expect(result.body).toBe(JSON.stringify({error: 'Public token is missing in the request header'}))
+        expect(result.body).toBe(
+            JSON.stringify({
+                error: 'Public token is missing in the request header',
+            })
+        )
 
         expect(jestMockLog).toBeCalled()
         expect(jestMockLog.mock.calls).toEqual([
             [
-                "Error Lambda: appVersionHandler",
+                'Error Lambda: appVersionHandler',
                 {
-                    "error": "Public token is missing in the request header"
-                }
-            ]
+                    error: 'Public token is missing in the request header',
+                },
+            ],
         ])
     })
 
@@ -68,7 +74,7 @@ describe('Test Public base API', () => {
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'public-token': process.env.PUBLIC_ACCESS_TOKEN
+                'public-token': process.env.PUBLIC_ACCESS_TOKEN,
             },
             pathParameters: {},
             body: JSON.stringify({}),
@@ -77,7 +83,11 @@ describe('Test Public base API', () => {
             timeoutEarlyInMillis: 0,
         })
         expect(result.statusCode).toBe(500)
-        expect(result.body).toBe(JSON.stringify({"error":"invalid response body type, found function"}))
+        expect(result.body).toBe(
+            JSON.stringify({
+                error: 'invalid response body type, found function',
+            })
+        )
     })
 
     it('Failed using wrong public token', async () => {
@@ -86,7 +96,7 @@ describe('Test Public base API', () => {
         let event: any = {
             headers: {
                 'Content-Type': 'application/json',
-                'public-token': `${process.env.PUBLIC_ACCESS_TOKEN}_error`
+                'public-token': `${process.env.PUBLIC_ACCESS_TOKEN}_error`,
             },
             pathParameters: {},
             body: JSON.stringify({}),
@@ -95,6 +105,10 @@ describe('Test Public base API', () => {
             timeoutEarlyInMillis: 0,
         })
         expect(result.statusCode).toBe(500)
-        expect(result.body).toBe(JSON.stringify({"error":"Public token is wrong, please contact the administrator"}))
+        expect(result.body).toBe(
+            JSON.stringify({
+                error: 'Public token is wrong, please contact the administrator',
+            })
+        )
     })
 })

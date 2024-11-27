@@ -3,9 +3,8 @@ import {
     SendMessagesCommand,
     SendMessagesCommandInput,
 } from '@aws-sdk/client-pinpoint'
-import {logger} from "src/lib/logger";
-import {AWS_REGION, IS_OFFLINE, LOCALSTACK_URL} from "src/LambdaConfig";
-
+import { logger } from 'src/lib/logger'
+import { AWS_REGION, IS_OFFLINE, LOCALSTACK_URL } from 'src/LambdaConfig'
 
 const sesConfig = {
     region: AWS_REGION,

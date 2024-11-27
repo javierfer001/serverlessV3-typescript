@@ -9,4 +9,3 @@ export class Duid {
         return `${Ids.TOKEN}_${uuidv4()}${new Date().getTime()}`
     }
 }
-

@@ -2,7 +2,7 @@ httpApi:
     disableDefaultEndpoint: true
     cors:
         allowedOrigins:
-        - "*"
+            - '*'
         allowedMethods:
             - GET
             - POST
