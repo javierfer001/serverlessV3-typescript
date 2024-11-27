@@ -2,9 +2,9 @@ import 'reflect-metadata'
 import { EntityManager, Repository } from 'typeorm'
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral'
 import { EntityTarget } from 'typeorm/common/EntityTarget'
-import {logger} from "src/lib/logger";
+import { logger } from 'src/lib/logger'
 
- export const withTimeout = <T>(timeoutMs: number, promise: any): Promise<T> => {
+export const withTimeout = <T>(timeoutMs: number, promise: any): Promise<T> => {
     const timeoutPromise = new Promise<T>((resolve) => {
         setTimeout(() => {
             logger.log('The send Msg is timeout')

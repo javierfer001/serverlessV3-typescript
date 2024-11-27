@@ -1,5 +1,5 @@
 import { APIGatewayProxyResult } from 'aws-lambda'
-import {StatusCodes} from "src/aws-lambda/middle/HttpStatus";
+import { StatusCodes } from 'src/aws-lambda/middle/HttpStatus'
 
 const DEFAULT_HEADERS = {
     'content-type': 'application/json',
@@ -35,9 +35,7 @@ export class HttpApiResponse {
             let type = typeof body
 
             if (type == 'symbol' || type == 'function')
-                throw new Error(
-                    `invalid response body type, found ${type}`,
-                )
+                throw new Error(`invalid response body type, found ${type}`)
 
             if (type != 'string') body = JSON.stringify(body)
         }

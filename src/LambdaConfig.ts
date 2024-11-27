@@ -1,6 +1,6 @@
-import {strict as assert} from "assert";
+import { strict as assert } from 'assert'
 
-export const PUBLIC_APP_NAME = "My App"
+export const PUBLIC_APP_NAME = 'My App'
 export const ACCOUNT_ID = String(process.env?.AWS_ACCOUNT_ID)
 export const AWS_REGION = process.env.REGION ?? 'us-east-1'
 

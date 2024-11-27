@@ -6,9 +6,11 @@ import {
 } from 'aws-lambda'
 
 import { HttpApiResponse } from './HttpApiResponse'
-import {HttpApiContext, LambdaAuthType} from "src/aws-lambda/middle/HttpApiContext";
-import {logger} from "src/lib/logger";
-
+import {
+    HttpApiContext,
+    LambdaAuthType,
+} from 'src/aws-lambda/middle/HttpApiContext'
+import { logger } from 'src/lib/logger'
 
 export type HttpApiHandler = (
     context: HttpApiContext
@@ -24,7 +26,6 @@ export class MiddleLambda {
         }
         return MiddleLambda._instance
     }
-
 
     public httpApi(handler: HttpApiHandler, authz: LambdaAuthType) {
         return async (

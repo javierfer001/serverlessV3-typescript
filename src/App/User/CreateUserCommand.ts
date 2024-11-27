@@ -2,8 +2,8 @@ import z from 'zod'
 import { Role, User } from 'src/Aggregate/User/Domain/User'
 import { UserRepo } from 'src/Aggregate/User/Infra/UserRepo'
 import { DataSource } from 'typeorm'
-import {PhoneNumber} from "src/Aggregate/Base/Domain/PhoneNumber";
-import {AbstractCommand} from "src/App/Base/AbstractCommand";
+import { PhoneNumber } from 'src/Aggregate/Base/Domain/PhoneNumber'
+import { AbstractCommand } from 'src/App/Base/AbstractCommand'
 
 export const CreateUserSchema = z.object({
     first: z.string().optional(),
@@ -32,7 +32,7 @@ export class CreateUserCommand extends AbstractCommand {
         if (this.user.role != Role.admin) {
             throw new Error(
                 'Unauthorized access, your role is not allowed, Role: ' +
-                this.user.role,
+                    this.user.role
             )
         }
     }
@@ -41,9 +41,7 @@ export class CreateUserCommand extends AbstractCommand {
         return CreateUserSchema.parse(body)
     }
 
-    async handler(
-        data: Record<string, any>,
-    ): Promise<{ [key: string]: any }> {
+    async handler(data: Record<string, any>): Promise<{ [key: string]: any }> {
         const fields = this.getFields(data)
         let user = new User()
 

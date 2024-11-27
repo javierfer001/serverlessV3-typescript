@@ -1,17 +1,16 @@
 import 'reflect-metadata'
-import {APIGatewayProxyEventV2, Context} from 'aws-lambda'
+import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
 import z from 'zod'
-import {DataSource} from "typeorm";
-import {Driver} from "src/App/dataSource";
-import {User} from "src/Aggregate/User/Domain/User";
-import {UserRepo} from "src/Aggregate/User/Infra/UserRepo";
-import {PUBLIC_ACCESS_TOKEN} from "src/LambdaConfig";
+import { DataSource } from 'typeorm'
+import { Driver } from 'src/App/dataSource'
+import { User } from 'src/Aggregate/User/Domain/User'
+import { UserRepo } from 'src/Aggregate/User/Infra/UserRepo'
+import { PUBLIC_ACCESS_TOKEN } from 'src/LambdaConfig'
 
 export enum LambdaAuthType {
     public,
     token,
 }
-
 
 const ValidateUserToken = z
     .string()
@@ -55,7 +54,7 @@ export class HttpApiContext {
                 this.filter = JSON.parse(filter)
             } catch {
                 throw new Error(
-                    `filter param does not have JSON format, fn ${lambdaName}`,
+                    `filter param does not have JSON format, fn ${lambdaName}`
                 )
             }
         }
@@ -74,23 +73,17 @@ export class HttpApiContext {
         if (this.authz == LambdaAuthType.public) {
             const stringToken = this.headers.get('public-token')
             if (!stringToken) {
-                throw new Error(
-                    'Public token is missing in the request header',
-                )
+                throw new Error('Public token is missing in the request header')
             }
             if (stringToken !== PUBLIC_ACCESS_TOKEN) {
                 throw new Error(
-                    'Public token is wrong, please contact the administrator',
+                    'Public token is wrong, please contact the administrator'
                 )
             }
-        }
-
-        else if (this.authz == LambdaAuthType.token) {
+        } else if (this.authz == LambdaAuthType.token) {
             const token = this.headers.get('token')
             if (!token) {
-                throw new Error(
-                    'Token is missing in the request header',
-                )
+                throw new Error('Token is missing in the request header')
             }
             ValidateUserToken.parse(token)
 
@@ -103,27 +96,25 @@ export class HttpApiContext {
 
             if (!this.loginUser) {
                 throw new Error(
-                    'The admin session has expired. Please login again to continue',
+                    'The admin session has expired. Please login again to continue'
                 )
             }
         } else {
-            throw new Error(
-                'Invalid auth type',
-            )
+            throw new Error('Invalid auth type')
         }
         return this
     }
 
     getUser(): User {
-        if (!this.loginUser)
-            throw new Error('User no found')
+        if (!this.loginUser) throw new Error('User no found')
         return this.loginUser
     }
 
     public isMethod(method: string): void {
-        if(method !== this.event?.requestContext?.http?.method) {
+        if (method !== this.event?.requestContext?.http?.method) {
             throw new Error(
-                'You are not allowed to access this method. Method Allow: ' + method,
+                'You are not allowed to access this method. Method Allow: ' +
+                    method
             )
         }
     }

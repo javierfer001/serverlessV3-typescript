@@ -2,8 +2,8 @@ import z from 'zod'
 import { Role, User } from 'src/Aggregate/User/Domain/User'
 import { UserRepo } from 'src/Aggregate/User/Infra/UserRepo'
 import { DataSource } from 'typeorm'
-import {PhoneNumber} from "src/Aggregate/Base/Domain/PhoneNumber";
-import {AbstractCommand} from "src/App/Base/AbstractCommand";
+import { PhoneNumber } from 'src/Aggregate/Base/Domain/PhoneNumber'
+import { AbstractCommand } from 'src/App/Base/AbstractCommand'
 
 export const CreateUserSchema = z.object({
     first: z.string().optional(),
@@ -72,9 +72,7 @@ export class UpdateUserCommand extends AbstractCommand {
 
             if (fields?.phoneCode) {
                 if (user.phoneVerify) {
-                    throw new Error(
-                        'The phone number was verify',
-                    )
+                    throw new Error('The phone number was verify')
                 }
                 user.verifyPhoneCode(fields.phoneCode)
             }

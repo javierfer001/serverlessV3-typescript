@@ -1,0 +1,11 @@
+package.json
+package-lock.json
+yarn.lock
+dist
+.docker
+.webpack
+.node_modules
+jest.config.ts
+__generated__
+# Ignore artifacts:
+src/services/notification/email
