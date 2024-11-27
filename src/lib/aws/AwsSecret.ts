@@ -37,8 +37,8 @@ export class AwsSecret {
 
     private secretClient: SecretsManagerClient
 
-    public static getInstance() {
-        if (!AwsSecret._instance) {
+    public static getInstance(reset = false): AwsSecret {
+        if (!AwsSecret._instance || reset) {
             AwsSecret._instance = new AwsSecret()
         }
         return AwsSecret._instance
@@ -81,7 +81,7 @@ export class AwsSecret {
         if (this._secretMap.size == 0) {
             try {
                 this._secretMap = this.createSecretMap(
-                    fs.readFileSync(CACHE_FILE, 'utf8')
+                    fs.readFileSync(CACHE_FILE, { encoding: 'utf8' })
                 )
                 if (!this.isExpired()) return
             } catch (err) {
