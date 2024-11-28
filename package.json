@@ -5,7 +5,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "serverless offline --stage dev --reloadHandler",
-    "migration:create": "ts-node ./node_modules/typeorm/cli.js migration:create",
+    "migration": "ts-node ./node_modules/typeorm/cli.js migration:run -d ./src/data-source.ts",
+    "migration:create": "ts-node ./node_modules/typeorm/cli.js migration:create ./src/migrations/$npm_config_name",
     "test": "ENVIRONMENT=test jest --ci --coverage"
   },
   "engines": {
@@ -13,6 +14,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-pinpoint": "^3.699.0",
+    "@aws-sdk/client-secrets-manager": "^3.699.0",
+    "lodash.get": "^4.4.2",
     "reflect-metadata": "0.2.2",
     "sqlite3": "^5.1.7",
     "typeorm": "0.3.20",
@@ -22,6 +25,7 @@
     "@tsconfig/node20": "20.1.4",
     "@types/aws-lambda": "8.10.145",
     "@types/jest": "29.5.14",
+    "@types/lodash.get": "^4.4.9",
     "@types/node": "22.9.4",
     "aws-sdk-client-mock": "^4.1.0",
     "esbuild": "0.24.0",

@@ -10,6 +10,7 @@ import { Duid } from 'src/Aggregate/Base/Domain/Duid'
 import { PUBLIC_APP_NAME } from 'src/LambdaConfig'
 
 export enum Role {
+    client = 'client',
     admin = 'admin',
     manager = 'manager',
     system = 'system',
@@ -25,16 +26,31 @@ export class User extends Model {
     id!: string
 
     @Column({
+        type: 'varchar',
         nullable: true,
     })
     first?: string
 
     @Column({
+        type: 'varchar',
         nullable: true,
     })
     last?: string
 
     @Column({
+        type: 'varchar',
+        nullable: true,
+    })
+    email: string
+
+    @Column({
+        type: 'varchar',
+        nullable: true,
+    })
+    username?: string
+
+    @Column({
+        type: 'varchar',
         unique: true,
         nullable: true,
     })
@@ -44,11 +60,13 @@ export class User extends Model {
         unique: true,
     })
     @Column({
+        type: 'varchar',
         nullable: true,
     })
     phone?: string
 
     @Column({
+        type: 'varchar',
         nullable: true,
     })
     phoneCode?: string
@@ -60,6 +78,7 @@ export class User extends Model {
     phoneVerify?: boolean
 
     @Column({
+        type: 'varchar',
         nullable: true,
     })
     role: Role

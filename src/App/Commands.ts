@@ -1,6 +1,6 @@
-import { CreateUserCommand } from 'src/App/User/CreateUserCommand'
-import { UserQuery } from 'src/App/User/UserQuery'
-import { UpdateUserCommand } from 'src/App/User/UpdateUserCommand'
+import { CreateUserCommand } from 'src/App/Dashboard/User/CreateUserCommand'
+import { UserQuery } from 'src/App/Dashboard/User/UserQuery'
+import { UpdateUserCommand } from 'src/App/Dashboard/User/UpdateUserCommand'
 
 const commands = new Map<string, any>()
 

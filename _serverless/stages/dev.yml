@@ -1,3 +1,5 @@
 stage:
     accountId: ${aws:accountId, '000000000000'}
     region: us-east-1
+    secretCredentials: 'dev-secret-credentials'
+    cognitoPool: 'cognito-pool-dev'

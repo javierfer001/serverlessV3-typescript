@@ -18,7 +18,6 @@ export class Driver {
             entities,
             migrations,
             migrationsRun: true,
-            synchronize: true,
             logging: false,
         })
     }

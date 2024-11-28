@@ -27,6 +27,7 @@ provider:
     vpc: ${file(./_serverless/vpc.yml):vpc.${self:provider.stage}}
     environment:
         ENVIRONMENT: ${self:provider.stage}
+        SECRET_CREDENTIALS: ${file(./_serverless/stages/${sls:stage}.yml):stage.secretCredentials}
 
 plugins:
     - serverless-esbuild
@@ -72,3 +73,11 @@ functions:
             - httpApi:
                   path: /{source}
                   method: GET
+    cognitoSignUp:
+        handler: src/aws-lambda/handler/cognito-new-user.handler
+        name: quill-cognito-signup-${self:provider.stage}
+        events:
+            - cognitoUserPool:
+                  pool: ${file(./_serverless/stages/${sls:stage}.yml):stage.cognitoPool}
+                  trigger: PreSignUp
+                  existing: true

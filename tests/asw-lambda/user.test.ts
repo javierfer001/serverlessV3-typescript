@@ -1,17 +1,17 @@
 import { handler as mainHandler } from 'src/aws-lambda/handler/main'
-import { CreateUserCommand } from 'src/App/User/CreateUserCommand'
+import { CreateUserCommand } from 'src/App/Dashboard/User/CreateUserCommand'
 import { Role, User } from 'src/Aggregate/User/Domain/User'
 import { UserRepo } from 'src/Aggregate/User/Infra/UserRepo'
 import { Driver } from 'src/App/dataSource'
 import { DataSource } from 'typeorm'
-import { UserQuery } from 'src/App/User/UserQuery'
-import { UpdateUserCommand } from 'src/App/User/UpdateUserCommand'
+import { UserQuery } from 'src/App/Dashboard/User/UserQuery'
+import { UpdateUserCommand } from 'src/App/Dashboard/User/UpdateUserCommand'
 import { PinpointClient, SendMessagesCommand } from '@aws-sdk/client-pinpoint'
 import { mockClient } from 'aws-sdk-client-mock'
 
 const smsMock = mockClient(PinpointClient as any)
 
-describe('Test CRUD API', () => {
+describe('Test Create, Update and List API', () => {
     let admin: User, manager: User, dataSource: DataSource, userRepo: UserRepo
 
     beforeEach(async () => {
@@ -27,6 +27,7 @@ describe('Test CRUD API', () => {
         admin.last = 'Fdz'
         admin.phone = '+1234567890'
         admin.phoneVerify = true
+        admin.email = 'admin@domain.company.com'
         await userRepo.save(admin)
 
         manager = new User()
@@ -35,6 +36,7 @@ describe('Test CRUD API', () => {
         manager.last = 'Tulio'
         manager.phone = '+12345678901'
         manager.phoneVerify = true
+        manager.email = 'manager@domain.company.com'
         await userRepo.save(manager)
     })
 
@@ -63,6 +65,7 @@ describe('Test CRUD API', () => {
                 last: 'Doe',
                 phone: '+17866265478',
                 role: Role.manager,
+                email: 'manager1@domain.company.com',
             }),
         }
         let result = await mainHandler(event, <any>{
@@ -76,6 +79,8 @@ describe('Test CRUD API', () => {
             phone: '+17866265478',
             phoneCode: expect.any(String),
             phoneVerify: false,
+            email: 'manager1@domain.company.com',
+            username: null,
             role: Role.manager,
             token: expect.stringContaining('token_'),
         })
@@ -96,6 +101,8 @@ describe('Test CRUD API', () => {
             phoneCode: expect.any(String),
             phoneVerify: false,
             role: Role.manager,
+            email: 'manager1@domain.company.com',
+            username: null,
             token: expect.stringContaining('token_'),
         })
 
@@ -128,6 +135,8 @@ describe('Test CRUD API', () => {
                 phoneVerify: true,
                 role: Role.manager,
                 token: manager.token,
+                email: 'manager@domain.company.com',
+                username: null,
             },
             {
                 first: 'Javier',
@@ -138,6 +147,8 @@ describe('Test CRUD API', () => {
                 phoneVerify: true,
                 role: Role.admin,
                 token: admin.token,
+                email: 'admin@domain.company.com',
+                username: null,
             },
             {
                 first: 'John',
@@ -148,6 +159,8 @@ describe('Test CRUD API', () => {
                 phoneVerify: false,
                 role: Role.manager,
                 token: users[0].token,
+                email: 'manager1@domain.company.com',
+                username: null,
             },
         ])
     })
@@ -195,6 +208,7 @@ describe('Test CRUD API', () => {
                 last: 'Doe',
                 phone: '+17866265478',
                 role: Role.manager,
+                email: 'manager1@domain.company.com',
             }),
         }
         let result = await mainHandler(event, <any>{
@@ -210,6 +224,8 @@ describe('Test CRUD API', () => {
             phoneCode: expect.any(String),
             phoneVerify: false,
             role: Role.manager,
+            email: 'manager1@domain.company.com',
+            username: null,
             token: expect.stringContaining('token_'),
         })
 
@@ -224,6 +240,8 @@ describe('Test CRUD API', () => {
             phoneCode: expect.any(String),
             phoneVerify: false,
             role: Role.manager,
+            email: 'manager1@domain.company.com',
+            username: null,
             token: expect.stringContaining('token_'),
         })
 
@@ -257,6 +275,8 @@ describe('Test CRUD API', () => {
             phoneCode: '',
             phoneVerify: true,
             role: Role.manager,
+            email: 'manager1@domain.company.com',
+            username: null,
             token: expect.stringContaining('token_'),
         })
     })
@@ -282,6 +302,7 @@ describe('Test CRUD API', () => {
                 last: 'Doe',
                 phone: '7866265478',
                 role: Role.manager,
+                email: 'manager1@domain.company.com',
             }),
         }
         let result = await mainHandler(event, <any>{
@@ -295,6 +316,47 @@ describe('Test CRUD API', () => {
                     code: 'custom',
                     message: 'Phone number has not a valid format',
                     path: ['phone'],
+                },
+            ],
+        })
+    })
+
+    it('Failed wrong email format', async () => {
+        expect.assertions(2)
+
+        let event: any = {
+            headers: {
+                'Content-Type': 'application/json',
+                token: admin.token,
+            },
+            pathParameters: {
+                source: CreateUserCommand.NAME,
+            },
+            requestContext: {
+                http: {
+                    method: 'POST',
+                },
+            },
+            body: JSON.stringify({
+                first: 'John',
+                last: 'Doe',
+                phone: '+17866265478',
+                role: Role.manager,
+                email: 'manager1 @domain.company.com_wrong',
+            }),
+        }
+        let result = await mainHandler(event, <any>{
+            timeoutEarlyInMillis: 0,
+        })
+        expect(result.statusCode).toBe(500)
+        let failedUser = JSON.parse(result.body)
+        expect(failedUser).toEqual({
+            error: [
+                {
+                    code: 'invalid_string',
+                    message: 'invalid email address',
+                    path: ['email'],
+                    validation: 'regex',
                 },
             ],
         })
@@ -319,6 +381,7 @@ describe('Test CRUD API', () => {
                 first: 'John',
                 last: 'Doe',
                 phone: '+17866265478',
+                email: 'manager1@domain.company.com',
                 role: Role.manager,
             }),
         }
@@ -351,6 +414,7 @@ describe('Test CRUD API', () => {
                 last: 'Doe',
                 phone: '+17866265478',
                 role: Role.manager,
+                email: 'manager1@domain.company.com',
             }),
         }
         let result = await mainHandler(event, <any>{

@@ -4,25 +4,24 @@ import { UserRepo } from 'src/Aggregate/User/Infra/UserRepo'
 import { DataSource } from 'typeorm'
 import { PhoneNumber } from 'src/Aggregate/Base/Domain/PhoneNumber'
 import { AbstractCommand } from 'src/App/Base/AbstractCommand'
+import { EmailSchema } from 'src/types/base'
 
 export const CreateUserSchema = z.object({
     first: z.string().optional(),
     last: z.string().optional(),
-
+    email: EmailSchema,
     phone: z
         .string()
         .optional()
         .refine((phone) => {
             return !(phone && !PhoneNumber.validator(phone))
         }, 'Phone number has not a valid format'),
-    phoneCode: z.string().optional(),
-    resentPhoneCode: z.boolean().optional(),
     role: z.enum([Role.manager, Role.admin]).optional(),
 })
 
-export class UpdateUserCommand extends AbstractCommand {
-    static readonly NAME = 'update-user'
-    static readonly METHOD = 'PUT'
+export class CreateUserCommand extends AbstractCommand {
+    static readonly NAME = 'create-user'
+    static readonly METHOD = 'POST'
 
     private readonly userRepo: UserRepo
 
@@ -32,19 +31,22 @@ export class UpdateUserCommand extends AbstractCommand {
     ) {
         super(user)
         this.userRepo = new UserRepo(driver)
+        if (this.user.role != Role.admin) {
+            throw new Error(
+                'Unauthorized access, your role is not allowed, Role: ' +
+                    this.user.role
+            )
+        }
     }
 
     getFields(body: any) {
         return CreateUserSchema.parse(body)
     }
 
-    async handler(
-        data: Record<string, any>,
-        id: string
-    ): Promise<{ [key: string]: any }> {
+    async handler(data: Record<string, any>): Promise<{ [key: string]: any }> {
         const fields = this.getFields(data)
-        let user = await this.userRepo.findOneByOrFail({ id })
-
+        let user = new User()
+        user.email = fields.email
         if (fields?.first) {
             user.first = User.alphabeticChar(fields.first)
             user.last = User.alphabeticChar(fields.last)
@@ -62,20 +64,6 @@ export class UpdateUserCommand extends AbstractCommand {
                 user,
                 new PhoneNumber(fields.phone)
             )
-        } else {
-            /**
-             * Resent the verification code
-             */
-            if (fields?.resentPhoneCode) {
-                await this.userRepo.resendVerificationCode(this.user)
-            }
-
-            if (fields?.phoneCode) {
-                if (user.phoneVerify) {
-                    throw new Error('The phone number was verify')
-                }
-                user.verifyPhoneCode(fields.phoneCode)
-            }
         }
 
         await this.userRepo.save(user)
