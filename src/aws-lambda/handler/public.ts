@@ -4,9 +4,22 @@ import {
     LambdaAuthType,
 } from 'src/aws-lambda/middle/HttpApiContext'
 import { HttpApiResponse } from 'src/aws-lambda/middle/HttpApiResponse'
-import { AppVersion } from 'src/App/appVersion'
+import { ApiVersionHandler } from 'src/App/ApiVersionHandler'
+import { CommandHandler } from 'src/App/Base/CommandHandler'
+import { LoginCommand } from 'src/App/Mobile/LoginCommand'
 
-const appVersionHandler = async (_: HttpApiContext) => {
-    return HttpApiResponse.result(AppVersion.version())
+const publicHttpMap = new Map<string, any>()
+publicHttpMap.set(ApiVersionHandler.NAME, ApiVersionHandler)
+publicHttpMap.set(LoginCommand.NAME, LoginCommand)
+
+const appVersionHandler = async (context: HttpApiContext) => {
+    let handle = new CommandHandler(
+        context.dataSource,
+        publicHttpMap,
+        null,
+        context
+    )
+
+    return HttpApiResponse.result(await handle.handler())
 }
 export const handler = Lambda.httpApi(appVersionHandler, LambdaAuthType.public)

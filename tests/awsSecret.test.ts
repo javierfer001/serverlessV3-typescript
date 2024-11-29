@@ -39,7 +39,7 @@ describe('Test AWS secret manager', () => {
             }),
         } as any)
 
-        let value = await secret.get('secret')
+        let value = await secret.getValue('secret')
         expect(value).toEqual('value')
 
         expect(readFileSyncMock.mock.calls[0]).toEqual([
@@ -50,7 +50,7 @@ describe('Test AWS secret manager', () => {
         ])
         readFileSyncMock.mockClear()
 
-        value = await secret.get('secret')
+        value = await secret.getValue('secret')
         expect(value).toEqual('value')
         expect(readFileSyncMock).not.toHaveBeenCalled()
     })
@@ -62,7 +62,7 @@ describe('Test AWS secret manager', () => {
 
         let errorMsg = ''
         try {
-            await secret.get('secret')
+            await secret.getValue('secret')
         } catch (error) {
             errorMsg = error.message
         }

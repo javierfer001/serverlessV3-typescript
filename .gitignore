@@ -9,7 +9,7 @@ jspm_packages
 .esbuild
 
 .idea
-
+.env
 coverage
 
 package-lock.json
