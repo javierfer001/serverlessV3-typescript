@@ -27,6 +27,11 @@ const TTL_KEY = '__TTL__', // manually added to cache file
 
 type SecretsMap = Map<string, string>
 
+export enum SecretAttrName {
+    cognitoPoolId = 'cognitoPoolId',
+    getCognitoClientId = 'getCognitoClientId',
+}
+
 /**
  * AwsSecret class to manage secrets
  */
@@ -52,7 +57,7 @@ export class AwsSecret {
      * Get secret value by name
      * @param name
      */
-    public async get(name: string): Promise<string> {
+    public async getValue(name: string): Promise<string> {
         if (this.isExpired()) {
             await this.read()
         }
@@ -139,4 +144,5 @@ export class AwsSecret {
         }
     }
 }
+
 export const secret = AwsSecret.getInstance()

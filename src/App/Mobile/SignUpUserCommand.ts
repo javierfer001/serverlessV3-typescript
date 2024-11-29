@@ -3,8 +3,13 @@ import { DataSource } from 'typeorm'
 import { AbstractCommand } from 'src/App/Base/AbstractCommand'
 import { Role, User } from 'src/Aggregate/User/Domain/User'
 
+/**
+ * Cognito sign up user.
+ */
 export class SignUpUserCommand extends AbstractCommand {
     static readonly NAME = 'cognito-sign-up'
+    // This is a cognito command, called by the cognito service.
+    static readonly METHOD = 'NONE'
 
     readonly userRepo: UserRepo
 

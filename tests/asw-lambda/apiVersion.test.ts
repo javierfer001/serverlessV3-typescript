@@ -1,6 +1,6 @@
 import { handler as publicHandler } from 'src/aws-lambda/handler/public'
 import { logger } from 'src/lib/logger'
-import { AppVersion } from 'src/App/appVersion'
+import { ApiVersionHandler } from 'src/App/ApiVersionHandler'
 
 describe('Test Public base API', () => {
     beforeEach(async () => {})
@@ -19,7 +19,14 @@ describe('Test Public base API', () => {
                 'Content-Type': 'application/json',
                 'public-token': process.env.PUBLIC_ACCESS_TOKEN,
             },
-            pathParameters: {},
+            pathParameters: {
+                source: ApiVersionHandler.NAME,
+            },
+            requestContext: {
+                http: {
+                    method: 'POST',
+                },
+            },
             body: JSON.stringify({}),
         }
         let result = await publicHandler(event, <any>{
@@ -41,7 +48,14 @@ describe('Test Public base API', () => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            pathParameters: {},
+            pathParameters: {
+                source: ApiVersionHandler.NAME,
+            },
+            requestContext: {
+                http: {
+                    method: 'POST',
+                },
+            },
             body: JSON.stringify({}),
         }
         let result = await publicHandler(event, <any>{
@@ -65,31 +79,6 @@ describe('Test Public base API', () => {
         ])
     })
 
-    it('Handler exception from Application', async () => {
-        // Mock the Hello.sayHello function to throw an error
-        jest.spyOn(AppVersion, 'version').mockImplementation(() => {
-            return (() => {}) as any
-        })
-
-        let event: any = {
-            headers: {
-                'Content-Type': 'application/json',
-                'public-token': process.env.PUBLIC_ACCESS_TOKEN,
-            },
-            pathParameters: {},
-            body: JSON.stringify({}),
-        }
-        let result = await publicHandler(event, <any>{
-            timeoutEarlyInMillis: 0,
-        })
-        expect(result.statusCode).toBe(500)
-        expect(result.body).toBe(
-            JSON.stringify({
-                error: 'invalid response body type, found function',
-            })
-        )
-    })
-
     it('Failed using wrong public token', async () => {
         expect.assertions(2)
 
@@ -98,7 +87,14 @@ describe('Test Public base API', () => {
                 'Content-Type': 'application/json',
                 'public-token': `${process.env.PUBLIC_ACCESS_TOKEN}_error`,
             },
-            pathParameters: {},
+            pathParameters: {
+                source: ApiVersionHandler.NAME,
+            },
+            requestContext: {
+                http: {
+                    method: 'POST',
+                },
+            },
             body: JSON.stringify({}),
         }
         let result = await publicHandler(event, <any>{

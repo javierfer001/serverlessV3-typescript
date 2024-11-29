@@ -27,6 +27,7 @@ provider:
     vpc: ${file(./_serverless/vpc.yml):vpc.${self:provider.stage}}
     environment:
         ENVIRONMENT: ${self:provider.stage}
+        # PUBLIC_ACCESS_TOKEN:
         SECRET_CREDENTIALS: ${file(./_serverless/stages/${sls:stage}.yml):stage.secretCredentials}
 
 plugins:
@@ -65,14 +66,21 @@ functions:
         name: main-${self:provider.stage}
         events:
             - httpApi:
-                  path: /{source}
+                  path: /private/{source}
                   method: POST
             - httpApi:
-                  path: /{source}/{item}
+                  path: /private/{source}/{item}
                   method: PUT
             - httpApi:
-                  path: /{source}
+                  path: /private/{source}
                   method: GET
+    public:
+        handler: src/aws-lambda/handler/public.handler
+        name: public-${self:provider.stage}
+        events:
+            - httpApi:
+                  path: /public/{source}
+                  method: POST
     cognitoSignUp:
         handler: src/aws-lambda/handler/cognito-new-user.handler
         name: quill-cognito-signup-${self:provider.stage}
