@@ -313,9 +313,11 @@ describe('Test Create, Update and List API', () => {
         expect(failedUser).toEqual({
             error: [
                 {
-                    code: 'custom',
-                    message: 'Phone number has not a valid format',
+                    code: 'invalid_string',
+                    message:
+                        'It is not a valid phone number, format +1XXXXXXXXXX',
                     path: ['phone'],
+                    validation: 'regex',
                 },
             ],
         })
