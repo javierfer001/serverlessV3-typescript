@@ -36,11 +36,12 @@ export class AddEmail1732724090272 implements MigrationInterface {
         const userRepo = queryRunner.manager.getRepository(User)
         const admin = new User()
         admin.role = Role.admin
-        admin.first = 'Javier'
-        admin.last = 'Fdz'
+        admin.first = 'Perez'
+        admin.last = 'Perez'
         admin.phone = '+1234567890'
         admin.phoneVerify = true
         admin.email = 'admin@company.domain.com'
+        // This token is not valid token, it is just for has an example
         admin.token = 'token_8b4833a8-349c-4c19-bc4d-d680b1a3d9d21732602396310'
         await userRepo.save(admin)
     }
