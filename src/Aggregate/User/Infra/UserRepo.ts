@@ -1,6 +1,5 @@
 import { DataSource } from 'typeorm'
 import { User } from 'src/Aggregate/User/Domain/User'
-import { PhoneNumber } from 'src/Aggregate/Base/Domain/PhoneNumber'
 import {
     RepoBase,
     withTimeout,
@@ -12,9 +11,9 @@ export class UserRepo extends RepoBase<User> {
         super(User, dataSource.manager)
     }
 
-    async setNewPhoneNumber(user: User, phoneNumber: PhoneNumber) {
-        if (phoneNumber.value) {
-            user.phone = phoneNumber.value
+    async setNewPhoneNumber(user: User, phoneNumber: string) {
+        if (phoneNumber) {
+            user.phone = phoneNumber
             user.phoneCode = User.generateVerificationCode()
             user.phoneVerify = false
 

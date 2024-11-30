@@ -2,20 +2,14 @@ import z from 'zod'
 import { Role, User } from 'src/Aggregate/User/Domain/User'
 import { UserRepo } from 'src/Aggregate/User/Infra/UserRepo'
 import { DataSource } from 'typeorm'
-import { PhoneNumber } from 'src/Aggregate/Base/Domain/PhoneNumber'
 import { AbstractCommand } from 'src/App/Base/AbstractCommand'
-import { EmailSchema } from 'src/types/base'
+import { EmailSchema, PhoneSchema } from 'src/types/base'
 
 export const CreateUserSchema = z.object({
     first: z.string().optional(),
     last: z.string().optional(),
     email: EmailSchema,
-    phone: z
-        .string()
-        .optional()
-        .refine((phone) => {
-            return !(phone && !PhoneNumber.validator(phone))
-        }, 'Phone number has not a valid format'),
+    phone: PhoneSchema.optional(),
     role: z.enum([Role.manager, Role.admin]).optional(),
 })
 
@@ -60,10 +54,7 @@ export class CreateUserCommand extends AbstractCommand {
          * Change the phone number and send a verification code
          */
         if (fields?.phone) {
-            await this.userRepo.setNewPhoneNumber(
-                user,
-                new PhoneNumber(fields.phone)
-            )
+            await this.userRepo.setNewPhoneNumber(user, fields.phone)
         }
 
         await this.userRepo.save(user)
